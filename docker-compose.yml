@@ -1,0 +1,144 @@
+services:
+  # Microservices
+  user-auth-service:
+    build:
+      context: ./RoomReservationMicroServicesApiNode/UserAndAuthorizationManagementMicroService
+      dockerfile: Dockerfile
+    ports:
+      - "7007:7007"
+    environment:
+      - NODE_ENV=production
+      - PORT=7007
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=YourStrongPassword123!
+      - DB_NAME=user_auth_fresh_db
+    depends_on:
+      - postgres
+    networks:
+      - roomreservationnet
+
+  room-service:
+    build:
+      context: ./RoomReservationMicroServicesApiNode/RoomMicroService
+      dockerfile: Dockerfile
+    ports:
+      - "7008:7008"
+    environment:
+      - NODE_ENV=production
+      - PORT=7008
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=YourStrongPassword123!
+      - DB_NAME=room_db
+    depends_on:
+      - postgres
+    networks:
+      - roomreservationnet
+
+  reservation-service:
+    build:
+      context: ./RoomReservationMicroServicesApiNode/ReservationsMicroService
+      dockerfile: Dockerfile
+    ports:
+      - "7009:7009"
+    environment:
+      - NODE_ENV=production
+      - PORT=7009
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=YourStrongPassword123!
+      - DB_NAME=reservations_db
+      - EMAIL_SERVICE_URL=http://email-service:7011
+    depends_on:
+      - postgres
+    networks:
+      - roomreservationnet
+
+  payment-service:
+    build:
+      context: ./RoomReservationMicroServicesApiNode/PaymentMicroService
+      dockerfile: Dockerfile
+    ports:
+      - "7010:7010"
+    environment:
+      - NODE_ENV=production
+      - PORT=7010
+      - STRIPE_SECRET_KEY=*
+      - STRIPE_PUBLISHABLE_KEY=*
+      - MOCK_MODE=false
+      - RESERVATION_SERVICE_URL=http://reservation-service:7009
+      - EMAIL_SERVICE_URL=http://email-service:7011
+      - FRONTEND_URL=http://localhost:4200
+    networks:
+      - roomreservationnet
+
+  email-service:
+    build:
+      context: ./RoomReservationMicroServicesApiNode/SendingEmailsMicroService
+      dockerfile: Dockerfile
+    ports:
+      - "7011:7011"
+    environment:
+      - NODE_ENV=production
+      - PORT=7011
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=YourStrongPassword123!
+      - DB_NAME=sendingemails_db
+      - EMAIL_FROM_EMAIL=luism.desarrollo@gmail.com
+      - EMAIL_FROM_NAME=Room Reservation System
+      - BREVO_API_KEY=*
+    depends_on:
+      - postgres
+    networks:
+      - roomreservationnet
+
+  # Frontend
+  frontend:
+    build:
+      context: ./RoomReservationMicroServicesReact
+      dockerfile: Dockerfile
+      args:
+        - VITE_USER_API_URL=http://localhost:7007
+        - VITE_ROOM_API_URL=http://localhost:7008
+        - VITE_RESERVATION_API_URL=http://localhost:7009
+        - VITE_PAYMENT_API_URL=http://localhost:7010
+        - VITE_EMAIL_API_URL=http://localhost:7011
+        - VITE_STRIPE_PUBLISHABLE_KEY=*
+    ports:
+      - "4200:80"
+    depends_on:
+      - user-auth-service
+      - room-service
+      - reservation-service
+      - payment-service
+      - email-service
+    networks:
+      - roomreservationnet
+
+  # Database
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=YourStrongPassword123!
+      - POSTGRES_MULTIPLE_DATABASES=user_auth_fresh_db,room_db,reservations_db,sendingemails_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    #      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - roomreservationnet
+
+volumes:
+  postgres_data:
+
+networks:
+  roomreservationnet:
+    driver: bridge

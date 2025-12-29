@@ -1,0 +1,22 @@
+import { DataSource } from "typeorm";
+import * as path from "path";
+import * as dotenv from "dotenv";
+import { EmailQueue } from "../models/EmailQueue";
+
+// Load environment variables
+dotenv.config();
+
+const AppDataSource = new DataSource({
+  type: "postgres",
+  host: process.env.DB_HOST || "localhost",
+  port: parseInt(process.env.DB_PORT || "5432"),
+  username: process.env.DB_USER || "postgres",
+  password: process.env.DB_PASSWORD || "root",
+  database: process.env.DB_NAME || "sendingemails-db",
+  synchronize: true,
+  logging: true,
+  entities: [EmailQueue],
+  migrations: [path.join(__dirname, "..", "migrations", "*.{ts,js}")],
+});
+
+export { AppDataSource };

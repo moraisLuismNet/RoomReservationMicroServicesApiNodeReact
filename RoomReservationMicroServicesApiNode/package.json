@@ -1,0 +1,23 @@
+{
+  "name": "room-reservation-microservices-root",
+  "version": "1.0.0",
+  "description": "Root project to manage and run all microservices",
+  "scripts": {
+    "install-all": "npm install && npm install --prefix PaymentMicroService && npm install --prefix ReservationsMicroService && npm install --prefix RoomMicroService && npm install --prefix SendingEmailsMicroService && npm install --prefix UserAndAuthorizationManagementMicroService",
+    "dev-all": "node start-services.js",
+    "start-services": "node start-services.js",
+    "migration:run": "node run-all-migrations.js run",
+    "migration:revert": "node run-all-migrations.js revert",
+    "migration:users": "cd UserAndAuthorizationManagementMicroService && npm run migration:run",
+    "migration:payment": "cd PaymentMicroService && npm run migration:run",
+    "migration:reservations": "cd ReservationsMicroService && npm run migration:run",
+    "migration:rooms": "cd RoomMicroService && npm run migration:run",
+    "migration:emails": "cd SendingEmailsMicroService && npm run migration:run"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "concurrently": "^9.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

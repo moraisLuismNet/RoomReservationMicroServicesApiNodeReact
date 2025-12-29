@@ -1,0 +1,12 @@
+{
+  "name": "room-reservation-microservices-api-node-react",
+  "version": "1.0.0",
+  "description": "Room Reservation System with React frontend and Node backend",
+  "scripts": {
+    "start": "node start.js",
+    "dev": "npm run dev-all --prefix RoomReservationMicroServicesApiNode",
+    "stop": "docker-compose down",
+    "logs": "docker-compose logs -f",
+    "rebuild": "node start.js --build"
+  }
+}
